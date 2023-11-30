@@ -4,7 +4,7 @@
 if BOARD_WUBBO_LEFT
 
 config ZMK_SPLIT_BLE_ROLE_CENTRAL
-	default n
+	default y
 
 endif
 
