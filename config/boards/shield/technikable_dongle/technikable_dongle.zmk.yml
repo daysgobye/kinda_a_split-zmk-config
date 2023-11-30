@@ -1,0 +1,11 @@
+file_format: "1"
+id: technikable_dongle
+name: technikable Dongle
+type: shield
+url: https://github.com/benvallack/zmk-config-enki42
+requires: [pro_micro]
+exposes: [i2c_oled]
+features:
+  - keys
+siblings:
+  - technikable_dongle

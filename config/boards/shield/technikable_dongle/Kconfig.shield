@@ -1,0 +1,8 @@
+# technikable board configuration
+
+# Copyright (c) 2021 Pete Johanson
+# SPDX-License-Identifier: MIT
+
+config BOARD_TECHNIKABLE
+	def_bool $(shields_list_contains,technikable_dongle)
+
