@@ -1,5 +1,5 @@
 #include "wubbo_left.dts"
 
 &ortho_transform {
-    col-offset = <1>;
+
 };
