@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 The ZMK Contributors
+ * Copyright (c) 2022 Pete Johanson
  *
  * SPDX-License-Identifier: MIT
  */
@@ -7,125 +7,117 @@
 #include <behaviors.dtsi>
 #include <dt-bindings/zmk/keys.h>
 #include <dt-bindings/zmk/bt.h>
+#include <dt-bindings/zmk/outputs.h>
 
-#define BT0 &bt BT_SEL 0
-#define BT1 &bt BT_SEL 1
-#define BT2 &bt BT_SEL 2
-#define BT3 &bt BT_SEL 3
-#define BT4 &bt BT_SEL 4
+#define QWERTY_BASE 1
 
-#define BASE 0
-#define COLE 1
-#define SYM 2
-#define NUM 3
-#define EXT 4
+#define TBLE_ORTHO   true
+// #define TBLE_MIT     true
+// #define TBLE_DUAL_2U true
 
-#define EUR RA(N5)
+#define BAS_L 0
+#define NAV_L 1
+#define NUM_L 2
+#define SYM_L 3
 
-&sl {
-  release-after-ms = <60000>;
-};
+// Using layer taps on thumbs, having quick tap as well helps w/ repeating space/backspace
+&lt { quick_tap_ms = <200>; };
+
+#define BT(n) BT_SEL n
 
 / {
-
-	behaviors {
-        sp: space_modtap {
-            compatible = "zmk,behavior-hold-tap";
-            label = "SPACE_MODTAP";
-            #binding-cells = <2>;
-            tapping-term-ms = <400>;
-            quick_tap_ms = <0>;
-            flavor = "tap-preferred";
-            bindings = <&kp>, <&kp>;
-        };
-
-        hm: homerow_mods {
-            compatible = "zmk,behavior-hold-tap";
-            label = "HOMEROW_MODS";
-            #binding-cells = <2>;
-            tapping_term_ms = <200>;
-            flavor = "tap-preferred";
-            bindings = <&kp>, <&kp>;
-        };
+    chosen {
+       zmk,matrix_transform =
+#ifdef TBLE_DUAL_2U
+                       &dual_2u_transform;
+#elif defined(TBLE_MIT)
+                       &mit_transform;
+#else
+                       &ortho_transform;
+#endif
     };
 
-        combos {
-        compatible = "zmk,combos";
-
-        #define COMBO(NAME, BINDINGS, KEYPOS, LAYERS) \
-          combo_##NAME { \
-            bindings = <BINDINGS>; \
-            key-positions = <KEYPOS>; \
-            layers = <LAYERS>; \
-          };
-
-        /* 
-          ╭───────────────────────╮          ╭───────────────────────╮
-          │          0   1   2  3 │          │  4   5   6   7        │
-          │  8   9  10  11  12 13 │          │ 14  15  16  17  18  19│
-          │     20  21  22  23 24  ───╮ ╭────  25  26  27  28  29    │
-          ╰─────────────────╮  30  31 │ │ 32  33 ╭───────────────────╯
-                            ╰─────────╯ ╰────────╯           
-        */
-
-        COMBO(left_esc, &kp ESC, 1 2, BASE NUM COLE)
-	      COMBO(dmenu, &kp LG(D), 31 32, BASE NUM SYM COLE)
-	      COMBO(ptt, &kp F24, 12 31, BASE NUM SYM COLE)
-	      COMBO(quit, &kp LG(LS(Q)), 0 31, BASE NUM SYM COLE)
-      	COMBO(extra_layer, &mo EXT, 30 31, BASE NUM SYM COLE)
-        COMBO(qwerty_layer, &tog BASE, 0 1 2, BASE NUM SYM COLE)
-        COMBO(colemak_layer, &tog COLE, 4 5 6, BASE NUM SYM COLE)
+    conditional_layers {
+        compatible = "zmk,conditional-layers";
+	tri_layer {
+	    if-layers = <NAV_L NUM_L>;
+	    then-layer = <SYM_L>;
+	};
     };
 
     keymap {
-		compatible = "zmk,keymap";
+        compatible = "zmk,keymap";
 
-		base_layer {
-			bindings = <
-                       &kp W      &kp E       &kp R        &kp T                                  &kp Y         &kp U        &kp I        &kp O       
-&kp Q      &hm LGUI A  &hm LALT S &hm LCTRL D &hm LSHFT F  &kp G                                  &kp H         &hm RSHFT J  &hm RCTRL K  &hm RALT L  &lt NUM SEMI &hm RGUI P
-           &kp Z       &kp X      &kp C       &kp V        &kp B                                  &kp N         &kp M        &kp COMMA    &kp DOT     &kp FSLH
-						                                               &kp SPACE &lt SYM BSPC  &mt RSHFT TAB  &kp RET
-			>;
-       	};
+        base_layer {
+            label = "Base";
+            bindings = <
+#ifdef QWERTY_BASE
+ &kp ESC    &kp Q      &kp W      &kp E       &kp R          &kp T          &kp Y            &kp U          &kp I       &kp O      &kp P         &kp BKSP
+ &kp TAB    &kp A      &kp S      &kp D       &kp F          &kp G          &kp H            &kp J          &kp K       &kp L      &kp SEMI      &kp QUOT
+ &kp LSHFT  &kp Z      &kp X      &kp C       &kp V          &kp B          &kp N            &kp M          &kp COMMA   &kp DOT    &kp FSLH      &kp RET
+#else
+ &kp ESC    &kp Q      &kp W      &kp F       &kp P          &kp B          &kp J            &kp L          &kp U       &kp Y      &kp QUOT     &kp BKSP
+ &kp TAB    &kp A      &kp R      &kp S       &kp T          &kp G          &kp M            &kp N          &kp E       &kp I      &kp O        &kp QUOT
+ &kp LSHFT  &kp Z      &kp X      &kp C       &kp D          &kp V          &kp K            &kp H          &kp COMMA   &kp DOT    &kp FSLH     &kp RET
+#endif
+#ifdef TBLE_DUAL_2U
+                       &kp LCTRL  &kp LALT      &lt NAV_L SPACE                &lt NUM_L SPACE              &kp RALT    &kp RCTRL
+#elif defined(TBLE_MIT)
+                       &kp LCTRL  &kp LALT    &mo NAV_L          &kp SPACE                   &mo NUM_L      &kp RALT    &kp RCTRL
+#else
+                       &kp LCTRL  &kp LALT    &mo NAV_L      &kp SPACE      &kp SPACE        &mo NUM_L      &kp RALT    &kp RCTRL
+#endif
+            >;
+        };
 
+        nav_layer {
+            label = "Nav";
+            bindings = <
+&bt BT_CLR &trans     &trans     &trans      &trans          &trans       &trans     &trans         &trans      &trans     &trans     &kp DEL
+&trans     &trans     &trans     &trans      &trans          &trans       &trans     &kp LARW       &kp DARW    &kp UARW   &kp RARW   &trans
+&trans     &bt BT(0)  &bt BT(1)  &bt BT(2)   &bt BT(3)       &bt BT(4)    &trans     &kp HOME       &kp PG_DN   &kp PG_UP  &kp END    &trans
+#ifdef TBLE_DUAL_2U
+                      &trans     &trans              &trans                    &trans       &trans         &trans
+#elif defined(TBLE_MIT)
+                      &trans     &trans      &trans                &trans             &trans      &trans   &trans
+#else
+                      &trans     &trans      &trans          &trans       &trans    &trans  &trans         &trans
+#endif
+            >;
+        };
 
-		cole_layer {
-			bindings = <
-                      &kp W      &kp F       &kp P        &kp B                                  &kp J         &kp L        &kp U        &kp Y       
-&kp Q     &hm LGUI A  &hm LALT R &hm LCTRL S &hm LSHFT T  &kp G                                  &kp M         &hm RSHFT N  &hm RCTRL E  &hm RALT I  &lt NUM O     &hm RGUI SEMI
-          &kp Z       &kp X      &kp C       &kp D        &kp V                                  &kp K         &kp H        &kp COMMA    &kp DOT     &kp FSLH
- 						                                              &kp SPACE &lt SYM BSPC  &mt RSHFT TAB  &kp RET
-			>;
-       	};
+        num_layer {
+            label = "Num";
+            bindings = <
+&trans     &kp LBKT   &kp N7     &kp N8      &kp N9    &kp RBKT    &kp C_PREV    &trans         &trans       &trans       &trans     &trans
+&trans     &kp MINUS  &kp N4     &kp N5      &kp N6    &kp EQUAL   &kp C_NEXT    &trans         &trans       &trans       &trans     &trans
+&trans     &kp GRAVE  &kp N1     &kp N2      &kp N3    &kp BSLH    &trans        &trans         &trans       &trans       &trans     &trans
+#ifdef TBLE_DUAL_2U
+                     &trans     &kp N0              &trans                 &trans            &trans         &trans
+#elif defined(TBLE_MIT)
+                     &trans     &kp N0      &trans           &none            &kp ESC        &kp DEL      &trans
+#else
+                     &trans     &kp N0      &trans    &none         &none     &kp ESC        &kp DEL      &trans
+#endif
+            >;
+        };
 
-    
+        sym_layer {
+            label = "Sym";
+            bindings = <
+&trans     &kp LBRC   &kp LS(N7) &kp LS(N8)  &kp LS(N9)   &kp RBRC     &trans     &trans    &trans       &trans       &trans     &trans
+&trans     &kp COLON  &kp LS(N4) &kp LS(N5)  &kp LS(N6)   &kp PLUS     &trans     &trans    &trans       &trans       &trans     &trans
+&trans     &kp TILDE  &kp LS(N1) &kp LS(N2)  &kp LS(N3)   &kp LS(BSLH) &trans     &trans    &trans       &trans       &trans     &trans
+#ifdef TBLE_DUAL_2U
+                      &trans     &kp LS(N0)              &trans                    &trans       &trans         &trans
+#elif defined(TBLE_MIT)
+                      &trans     &kp LS(N0)      &trans                &trans             &trans      &trans   &trans
+#else
+                      &trans     &kp LS(N0)      &trans          &trans       &trans    &trans  &trans         &trans
+#endif
+            >;
+        };
 
-		symbol_layer {
-			bindings = <
-                      &kp AMPS   &kp ASTRK   &kp LPAR    &kp GRAVE                              &kp GRAVE   &kp LPAR     &kp RPAR     &none        
-&sl EXT       &kp EUR   &kp DLLR   &kp PRCNT   &kp CARET   &kp SQT                              &none       &kp LBRC     &kp RBRC     &kp LBKT    &kp RBKT    &none 
-            &none     &kp EXCL   &kp AT      &kp HASH    &kp DQT                                &kp BSLH    &kp PIPE     &kp PLUS     &kp EQUAL   &none
-						                                             &none      &none            &kp MINUS  &kp UNDER
-			>;
-       	};
-
-		numnav_layer {
-			bindings = <
-                      &kp N7     &kp N8      &kp N9      &none                                &kp C_MUTE   &kp C_VOL_DN &kp C_VOL_UP &trans       
-&none        &none    &kp N4     &kp N5      &kp N6      &none                                &kp LEFT     &kp DOWN     &kp UP       &kp RIGHT   &trans      &trans
-             &none    &kp N1     &kp N2      &kp N3      &none                                &kp HOME     &kp PG_DN    &kp PG_UP    &kp END     &trans
-						                                             &kp DOT     &kp N0          &none    &kp ESC
-			>;
-       	};
-
-		extra_layer {
-			bindings = <
-                      &kp F7     &kp F8      &kp F9      &kp F10                               &none        &none        &none        &none        
-&none        &none    &kp F4     &kp F5      &kp F6      &kp F11                               BT0          BT1          BT2          BT3         BT4         &bt BT_CLR
-             &none    &kp F1     &kp F2      &kp F3      &kp F12                               &none        &none        &none        &none       &none 
-						                                             &none       &none           &trans    &none
-			>;
-       	};
     };
 };
+
