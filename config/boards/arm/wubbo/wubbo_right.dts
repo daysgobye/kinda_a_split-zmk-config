@@ -1,5 +1,2 @@
 #include "wubbo_left.dts"
 
-&transform {
-    col-offset = <17>;
-};
